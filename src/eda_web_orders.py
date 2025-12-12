@@ -57,3 +57,19 @@ join_data.groupby("payment_month")["price"].sum()
 
 # %%
 # 9. 월별, 상품별 데이터 집계
+join_data.groupby(["payment_month","item_name"])[["price","quantity"]].sum()
+pd.pivot_table(join_data, index='item_name',columns='payment_month',values=['price','quantity'],aggfunc='sum')
+# %%
+# 10. 가시화
+
+graph_data = pd.pivot_table(join_data, index='payment_month',columns='item_name',values='price',aggfunc='sum')
+
+import matplotlib.pyplot as plt
+#%matplotlib inline
+plt.plot(list(graph_data.index),graph_data["PC-A"],label='PC-A')
+plt.plot(list(graph_data.index),graph_data["PC-B"],label='PC-B')
+plt.plot(list(graph_data.index),graph_data["PC-C"],label='PC-C')
+plt.plot(list(graph_data.index),graph_data["PC-D"],label='PC-D')
+plt.plot(list(graph_data.index),graph_data["PC-E"],label='PC-E')
+
+plt.legend()
