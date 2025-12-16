@@ -1,73 +1,81 @@
-# 웹 주문 데이터 EDA
+# Sales EDA Project (Pandas)
 
-본 프로젝트는 웹 기반 주문 데이터를 탐색적으로 분석(EDA)하여  
-주문 수 변화 패턴과 주요 지표를 파악하는 것을 목표로 한다.
+이 프로젝트는 고객/상품 마스터와 거래(헤더/디테일) 데이터를 결합해,
+월별 매출 및 상품별 매출 트렌드를 분석(EDA)하고 간단한 시각화를 수행합니다.
 
----
+## 📁 Project Structure
+```text
+project-folder/
+├── data/
+│   ├── customer_master.csv
+│   ├── item_master.csv
+│   ├── transaction_1.csv
+│   ├── transaction_2.csv
+│   ├── transaction_detail_1.csv
+│   └── transaction_detail_2.csv
+└── src/
+    └── eda_web_orders.py
+```   
 
-## 1. 분석 목적
+> `data/` 폴더 내 CSV 파일이 필수입니다.
 
-본 분석은 다음과 같은 질문에 답하기 위해 수행되었다.
+## 🧩 Dataset Overview
 
-- 시간 흐름에 따라 웹 주문 수는 어떻게 변화하는가?
-- 주문 금액 및 주문 빈도의 분포는 어떠한가?
-- 주문 수 변동에서 관찰되는 주요 패턴은 무엇인가?
+- `customer_master.csv`: 고객 마스터(고객 정보)
+- `item_master.csv`: 상품 마스터(상품 정보 및 단가)
+- `transaction_1.csv`, `transaction_2.csv`: 거래 헤더 데이터(결제일, 고객, 거래금액 등)
+- `transaction_detail_1.csv`, `transaction_detail_2.csv`: 거래 상세 데이터(상품, 수량 등)
 
----
+## 🛠️ Tech Stack
 
-## 2. 데이터 개요
+- Python
+- pandas
+- matplotlib
 
-- 데이터 출처: 웹 주문 로그 데이터 (비식별화)
-- 분석 기간: YYYY-MM-DD ~ YYYY-MM-DD
-- 데이터 단위: 주문 단위 (Order-level)
-- 주요 컬럼:
-  - order_id: 주문 ID
-  - order_date: 주문 일자
-  - user_id: 사용자 ID
-  - order_amount: 주문 금액
+## ✅ What This EDA Does
 
----
+### 1) 데이터 로드
+여러 CSV 파일을 읽어들인 후 데이터 형태를 확인합니다.
 
-## 3. 분석 범위
+### 2) 거래/거래상세 데이터 유니언(Concat)
+`transaction_1 + transaction_2`  
+`transaction_detail_1 + transaction_detail_2`  
+→ 각각 하나의 테이블로 통합합니다.
 
-본 프로젝트는 탐색적 데이터 분석(EDA)에 집중하며,  
-예측 모델링 및 머신러닝은 포함하지 않는다.
+### 3) 거래상세 + 거래헤더 조인(Merge)
+`transaction_id` 기준으로 거래상세에 `payment_date`, `customer_id`를 붙입니다.
 
-주요 분석 내용은 다음과 같다.
+### 4) 마스터 데이터 조인
+- 고객 마스터: `customer_id` 기준 조인
+- 상품 마스터: `item_id` 기준 조인
 
-- 결측치 및 이상치 확인
-- 기초 통계량 분석
-- 일별 주문 수 추이 분석
-- 주문 금액 분포 분석
-- 사용자 단위 주문 집계 분석
+### 5) 파생 변수 생성
+- `price = quantity * item_price`
 
----
+### 6) 데이터 검산(Validation)
+파생 변수로 만든 상세 매출 합계(`join_data["price"].sum()`)와  
+거래헤더의 매출 합계(`transaction["price"].sum()`)가 같은지 확인합니다.
 
-## 4. 주요 분석 결과
+### 7) 기본 통계/결측 확인
+- 결측치 개수 확인: `isnull().sum()`
+- 기술통계: `describe()`
+- 결제일 범위: `payment_date` min/max
 
-- 주문 수는 요일별로 뚜렷한 차이를 보이며 특정 요일에 집중되는 경향이 관찰됨
-- 소수의 사용자가 전체 주문의 상당 비중을 차지함
-- 주문 수는 일정한 주기성을 가지며 변동하는 패턴을 보임
+### 8) 월별 매출 집계
+- `payment_date`를 datetime으로 변환
+- `payment_month(YYYYMM)` 생성
+- 월별 매출 합계 집계
 
----
+### 9) 월별/상품별 매출 및 수량 집계
+- groupby로 월/상품 단위 집계
+- pivot_table로 월별 상품 매출/수량 테이블 생성
 
-## 5. 시각화 결과
+### 10) 시각화(상품별 월 매출 트렌드)
+상품 `PC-A ~ PC-E`의 월별 매출(price)을 라인 차트로 시각화합니다.
 
-분석 과정에서 다음과 같은 시각화를 수행하였다.
+## 🚀 How to Run
 
-- 일별 주문 수 추이 그래프
-- 주문 금액 분포 히스토그램
-- 사용자별 주문 수 상위 분포
-
-(시각화 결과는 `figures/` 디렉토리에 저장됨)
-
----
-
-## 6. 실행 방법
-
+### Option 1) Python script 실행
 ```bash
-# 가상환경 활성화
-source venv/Scripts/activate
-
-# 분석 스크립트 실행
+pip install pandas matplotlib
 python src/eda_web_orders.py

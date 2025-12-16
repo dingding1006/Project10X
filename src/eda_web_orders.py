@@ -9,7 +9,7 @@ transaction_2 = pd.read_csv('data/transaction_2.csv')
 transaction_detail_1 = pd.read_csv('data/transaction_detail_1.csv')
 transaction_detail_2 = pd.read_csv('data/transaction_detail_2.csv')
 
-display(customer_master.head())
+customer_master.head()
 
 # %%
 # 2. 데이터 결합(유니언)
@@ -59,6 +59,7 @@ join_data.groupby("payment_month")["price"].sum()
 # 9. 월별, 상품별 데이터 집계
 join_data.groupby(["payment_month","item_name"])[["price","quantity"]].sum()
 pd.pivot_table(join_data, index='item_name',columns='payment_month',values=['price','quantity'],aggfunc='sum')
+
 # %%
 # 10. 가시화
 
