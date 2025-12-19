@@ -43,4 +43,58 @@ for trg in list(uriage_data['item_name'].sort_values().unique()):
           + '의 최저가 : ' + str(uriage_data.loc[uriage_data['item_name']==trg]['item_price'].min(skipna=False)))
 
 # %%
-# 6. 
+# 6. 고객 이름 오류 수정
+kokyaku_data["고객이름"].head
+uriage_data["customer_name"].head()
+
+kokyaku_data['고객이름'] = kokyaku_data['고객이름'].str.replace(" ","")
+kokyaku_data['고객이름'] = kokyaku_data['고객이름'].str.replace("  ","")
+
+kokyaku_data["고객이름"].head
+
+# %%
+# 7. 날짜 오류 수정
+flg_is_serial = kokyaku_data["등록일"].astype('str').str.isdigit()
+flg_is_serial.sum()
+
+fromSerial = pd.to_timedelta(kokyaku_data.loc[flg_is_serial, '등록일'].astype('float'),unit='D') + pd.to_datetime('1900/01/01')
+fromSerial
+
+fromString = pd.to_datetime(kokyaku_data.loc[~flg_is_serial,'등록일'])
+fromString
+
+kokyaku_data["등록일"] = pd.concat([fromSerial, fromString])
+kokyaku_data
+
+flg_is_serial = kokyaku_data["등록일"].astype('str').str.isdigit()
+flg_is_serial.sum()
+# %%
+# 8. 고객이름을 키로 데이터 결합(조인)
+join_data = pd.merge(uriage_data, kokyaku_data, left_on="customer_name", right_on="고객이름", how="left")
+join_data = join_data.drop("customer_name", axis=1)
+join_data
+# %%
+# 9. 정제한 데이터 덤프
+dump_data = join_data[["purchase_date", "purchase_month", "item_name", "item_price", "고객이름", "지역", "등록일"]]
+dump_data
+
+dump_data.to_csv("dump_data.csv", index=False)
+# %%
+# 10. 데이터 집계
+import_data = pd.read_csv("dump_data.csv")
+import_data
+
+byItem = import_data.pivot_table(index="purchase_month", columns="item_name", aggfunc="size", fill_value=0)
+byItem
+
+byPrice = import_data.pivot_table(index="purchase_month", columns="item_name", values="item_price", aggfunc="sum", fill_value=0)
+byPrice
+
+byCustomer = import_data.pivot_table(index="purchase_month", columns="고객이름", aggfunc="size", fill_value=0)
+byCustomer
+
+byRegion = import_data.pivot_table(index="purchase_month", columns="지역", aggfunc="size", fill_value=0)
+byRegion
+
+away_data = pd.merge(uriage_data, kokyaku_data, left_on="customer_name", right_on="고객이름", how="right")
+away_data[away_data["purchase_date"].isnull()][["고객이름", "등록일"]]
