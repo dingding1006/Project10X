@@ -209,5 +209,5 @@ __marimo__/
 
 # --- Data files ---
 # 엑셀 원본 제외
-*.xlsx
-*.xls
+#*.xlsx
+#*.xls
